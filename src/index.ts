@@ -1,5 +1,3 @@
-// document.getElementById('go').onclick = () => window.alert('message')
-
 import 'regenerator-runtime/runtime'
 
 import { List, Map, Set, Range, Seq } from 'immutable';
@@ -24,7 +22,6 @@ const COMPONENTS: { [_: string]: Component } = {
   KNOCKBACK: makeComponent('Looting', 2 * 1),
   FIRE_ASPECT: makeComponent('Looting', 2 * 2),
   MENDING: makeComponent('Looting', 1 * 2),
-  IDK: makeComponent('asdasd', 0)
 }
 
 interface Item {
@@ -55,9 +52,11 @@ function levelToExp(level: number): number {
   return 4.5 * level * level + 162.5 * level + 2220;
 }
 
+const LEVEL_TO_EXP = new Map(Range(0, 100).map(level => [level, levelToExp(level)]).toArray())
+
 function combine(target: Item, sac: Item): Item {
   const combineLevelCost = sac.enchantLevelCost + workPenalty(target.workCount) + workPenalty(sac.workCount);
-  const combineExpCost = levelToExp(combineLevelCost);
+  const combineExpCost = LEVEL_TO_EXP.get(combineLevelCost);
   const workCount = Math.max(target.workCount, sac.workCount) + 1;
   return {
     enchants: target.enchants.union(sac.enchants),
@@ -162,17 +161,25 @@ function computeOptimalItem(enchants: List<Component>): Item {
   return candidateItems.minBy(item => item.completeExpCost)!;
 }
 
+const trials = 20;
+let optimal;
 const startTime = Date.now();
-console.log(computeOptimalItem(List([
-  COMPONENTS.BASE,
-  COMPONENTS.SWEEPING_EDGE,
-  COMPONENTS.LOOTING,
-  COMPONENTS.UNBREAKING,
-  COMPONENTS.KNOCKBACK,
-  COMPONENTS.FIRE_ASPECT,
-  COMPONENTS.MENDING,
-  COMPONENTS.SHARPNESS,
-])))
+for (let i = 0; i < trials; i++) {
+  optimal = computeOptimalItem(List([
+    COMPONENTS.BASE,
+    COMPONENTS.SWEEPING_EDGE,
+    COMPONENTS.LOOTING,
+    COMPONENTS.UNBREAKING,
+    COMPONENTS.KNOCKBACK,
+    COMPONENTS.FIRE_ASPECT,
+    COMPONENTS.MENDING,
+    COMPONENTS.SHARPNESS,
+  ]));
+}
 const endTime = Date.now();
 
+const elapsed = endTime - startTime;
+const average = elapsed / trials;
 console.log('elapsed (ms):', endTime - startTime);
+console.log('average (ms):', average);
+console.log('optimal:', optimal);
