@@ -1,0 +1,19 @@
+{
+  "name": "optimal-enchanter",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "author": "Knawk <knawk@knawk.net>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "parcel src/index.html",
+    "build": "parcel build src/index.html",
+    "typecheck": "tsc -w --noEmit"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^4.1.3"
+  },
+  "dependencies": {
+    "immutable": "^4.0.0-rc.12"
+  }
+}
