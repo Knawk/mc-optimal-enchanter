@@ -1,6 +1,6 @@
-import 'regenerator-runtime/runtime'
+import 'regenerator-runtime/runtime';
 
-import { List, Map, Set, Range, Seq } from 'immutable';
+import { List, Map, Set, Range } from 'immutable';
 
 interface Component {
   name: string;
@@ -10,7 +10,7 @@ interface Component {
 type Memo = Map<Set<Component>, Map<number, Item>>;
 
 function makeComponent(name: string, maxLevelCost: number): Component {
-  return { name, maxLevelCost }
+  return { name, maxLevelCost };
 }
 
 const COMPONENTS: { [_: string]: Component } = {
@@ -22,7 +22,7 @@ const COMPONENTS: { [_: string]: Component } = {
   KNOCKBACK: makeComponent('Looting', 2 * 1),
   FIRE_ASPECT: makeComponent('Looting', 2 * 2),
   MENDING: makeComponent('Looting', 1 * 2),
-}
+};
 
 interface Item {
   enchants: Set<Component>;
@@ -40,7 +40,7 @@ const SENTINEL_ITEM: Item = {
   enchantLevelCost: 0,
   combineExpCost: 0,
   completeExpCost: Infinity,
-}
+};
 
 function workPenalty(workCount: number): number {
   return Math.pow(2, workCount) - 1;
@@ -52,10 +52,17 @@ function levelToExp(level: number): number {
   return 4.5 * level * level + 162.5 * level + 2220;
 }
 
-const LEVEL_TO_EXP = new Map(Range(0, 100).map(level => [level, levelToExp(level)]).toArray())
+const LEVEL_TO_EXP = new Map(
+  Range(0, 100)
+    .map((level) => [level, levelToExp(level)])
+    .toArray()
+);
 
 function combine(target: Item, sac: Item): Item {
-  const combineLevelCost = sac.enchantLevelCost + workPenalty(target.workCount) + workPenalty(sac.workCount);
+  const combineLevelCost =
+    sac.enchantLevelCost +
+    workPenalty(target.workCount) +
+    workPenalty(sac.workCount);
   const combineExpCost = LEVEL_TO_EXP.get(combineLevelCost);
   const workCount = Math.max(target.workCount, sac.workCount) + 1;
   return {
@@ -63,17 +70,21 @@ function combine(target: Item, sac: Item): Item {
     workCount,
     enchantLevelCost: target.enchantLevelCost + sac.enchantLevelCost,
     combineExpCost,
-    completeExpCost: target.completeExpCost + sac.completeExpCost + combineExpCost,
+    completeExpCost:
+      target.completeExpCost + sac.completeExpCost + combineExpCost,
     target,
     sac,
   };
 }
 
-function* combinations<T>(vals: List<T>, size: number): IterableIterator<List<T>> {
+function* combinations<T>(
+  vals: List<T>,
+  size: number
+): IterableIterator<List<T>> {
   const n = vals.size;
   console.assert(size <= n);
   const indices = Range(0, size).toArray();
-  yield List(indices.map(i => vals.get(i)!));
+  yield List(indices.map((i) => vals.get(i)!));
   while (true) {
     let broke = false;
     let i = 0;
@@ -89,7 +100,7 @@ function* combinations<T>(vals: List<T>, size: number): IterableIterator<List<T>
     for (let j of Range(i + 1, size)) {
       indices[j] = indices[j - 1] + 1;
     }
-    yield List(indices.map(i => vals.get(i)!));
+    yield List(indices.map((i) => vals.get(i)!));
   }
 }
 
@@ -99,7 +110,7 @@ function* nonemptyPartitions<T>(vals: List<T>): IterableIterator<Set<T>> {
   let tail = vals.slice(1);
   for (let cellSize = 0; cellSize < vals.size - 1; cellSize++) {
     for (let leftCell of combinations(tail, cellSize)) {
-      yield Set<T>(leftCell).add(head)
+      yield Set<T>(leftCell).add(head);
     }
   }
 }
@@ -108,7 +119,10 @@ function hasBaseItem(item: Item): boolean {
   return item.enchants.has(COMPONENTS.BASE);
 }
 
-function* combinedItems(goalEnchants: List<Component>, memo: Memo): IterableIterator<Item> {
+function* combinedItems(
+  goalEnchants: List<Component>,
+  memo: Memo
+): IterableIterator<Item> {
   const goalSet = Set(goalEnchants);
   for (let leftCell of nonemptyPartitions(goalEnchants)) {
     const rightCell = goalSet.subtract(leftCell);
@@ -134,52 +148,68 @@ function computeOptimalItem(enchants: List<Component>): Item {
   let memo: Memo = Map();
   for (let enchant of enchants) {
     const singleton = Set([enchant]);
-    memo = memo.set(singleton, Map([[0, {
-      enchants: singleton,
-      workCount: 0,
-      enchantLevelCost: enchant.maxLevelCost,
-      combineExpCost: 0,
-      completeExpCost: 0,
-    }]]));
+    memo = memo.set(
+      singleton,
+      Map([
+        [
+          0,
+          {
+            enchants: singleton,
+            workCount: 0,
+            enchantLevelCost: enchant.maxLevelCost,
+            combineExpCost: 0,
+            completeExpCost: 0,
+          },
+        ],
+      ])
+    );
   }
 
   for (let subsetSize of Range(2, enchants.size + 1)) {
     const depthRange = List(Range(0, subsetSize));
     for (let goalEnchants of combinations(enchants, subsetSize)) {
       const goalSet = Set(goalEnchants);
-      memo = memo.set(goalSet, Map(depthRange.map(depth => [depth, SENTINEL_ITEM])));
+      memo = memo.set(
+        goalSet,
+        Map(depthRange.map((depth) => [depth, SENTINEL_ITEM]))
+      );
       for (let combinedItem of combinedItems(goalEnchants, memo)) {
-        let currentBestCost = memo.getIn([goalSet, combinedItem.workCount]).completeExpCost;
+        let currentBestCost = memo.getIn([goalSet, combinedItem.workCount])
+          .completeExpCost;
         if (combinedItem.completeExpCost < currentBestCost) {
-          memo = memo.setIn([goalSet, combinedItem.workCount], combinedItem)
+          memo = memo.setIn([goalSet, combinedItem.workCount], combinedItem);
         }
       }
     }
   }
 
   const candidateItems = List(memo.get(Set(enchants))!.values());
-  return candidateItems.minBy(item => item.completeExpCost)!;
+  return candidateItems.minBy((item) => item.completeExpCost)!;
 }
 
-const trials = 20;
-let optimal;
-const startTime = Date.now();
-for (let i = 0; i < trials; i++) {
-  optimal = computeOptimalItem(List([
-    COMPONENTS.BASE,
-    COMPONENTS.SWEEPING_EDGE,
-    COMPONENTS.LOOTING,
-    COMPONENTS.UNBREAKING,
-    COMPONENTS.KNOCKBACK,
-    COMPONENTS.FIRE_ASPECT,
-    COMPONENTS.MENDING,
-    COMPONENTS.SHARPNESS,
-  ]));
-}
-const endTime = Date.now();
+function benchmark() {
+  const trials = 20;
+  let optimal;
+  const startTime = Date.now();
+  for (let i = 0; i < trials; i++) {
+    optimal = computeOptimalItem(
+      List([
+        COMPONENTS.BASE,
+        COMPONENTS.SWEEPING_EDGE,
+        COMPONENTS.LOOTING,
+        COMPONENTS.UNBREAKING,
+        COMPONENTS.KNOCKBACK,
+        COMPONENTS.FIRE_ASPECT,
+        COMPONENTS.MENDING,
+        COMPONENTS.SHARPNESS,
+      ])
+    );
+  }
+  const endTime = Date.now();
 
-const elapsed = endTime - startTime;
-const average = elapsed / trials;
-console.log('elapsed (ms):', endTime - startTime);
-console.log('average (ms):', average);
-console.log('optimal:', optimal);
+  const elapsed = endTime - startTime;
+  const average = elapsed / trials;
+  console.log('elapsed (ms):', endTime - startTime);
+  console.log('average (ms):', average);
+  console.log('optimal:', optimal);
+}
