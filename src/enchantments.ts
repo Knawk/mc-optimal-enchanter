@@ -1,6 +1,6 @@
 import { List, Map, Set, Range } from 'immutable';
 
-interface Enchantment {
+export interface Enchantment {
   name: string,
   maxLevel: number,
   costMultiplier: number,
@@ -24,8 +24,8 @@ export const ENCHANTMENTS: { [_: string]: Enchantment } = {
   SHARPNESS: enchantment('Sharpness', 5, 1),
   SMITE: enchantment('Smite', 5, 1),
   BANE_ARTHRO: enchantment('Bane of Arthropods', 5, 1),
-  KNOCKBACK: enchantment('Looting', 2, 1),
-  FIRE_ASPECT: enchantment('Looting', 2 , 2),
+  KNOCKBACK: enchantment('Knockback', 2, 1),
+  FIRE_ASPECT: enchantment('Fire Aspect', 2 , 2),
   LOOTING: enchantment('Looting', 3, 2),
   EFFICIENCY: enchantment('Efficiency', 5, 1),
   SILK_TOUCH: enchantment('Silk Touch', 1, 4),
@@ -38,7 +38,7 @@ export const ENCHANTMENTS: { [_: string]: Enchantment } = {
   LUCK_SEA: enchantment('Luck of the Sea', 3, 2),
   LURE: enchantment('Lure', 3, 2),
   FROST_WALKER: enchantment('Frost Walker', 2, 2),
-  MENDING: enchantment('Looting', 1 , 2),
+  MENDING: enchantment('Mending', 1 , 2),
   CURSE_BINDING: enchantment('Curse of Binding', 1, 4),
   CURSE_VANISHING: enchantment('Curse of Vanishing', 1, 4),
   IMPALING: enchantment('Impaling', 5, 2),
