@@ -1,6 +1,6 @@
 import 'regenerator-runtime/runtime';
 
-import { List, Map, Set, Range } from 'immutable';
+import { List, Map, Set, Range, OrderedMap } from 'immutable';
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
 
 interface Component {
@@ -43,6 +43,12 @@ function levelToExp(level: number): number {
   if (level <= 31) return 2.5 * level * level - 40.5 * level + 360;
   return 4.5 * level * level + 162.5 * level + 2220;
 }
+
+const EXP_TO_LEVEL = Map(Range(0, 100).map(level => {
+  // Must round because floating-point equality is bad news
+  const exp = Math.round(levelToExp(level));
+  return [exp, level];
+}));
 
 function combine(target: Item, sac: Item): Item {
   const combineLevelCost =
@@ -184,11 +190,11 @@ interface StepBuildItem {
   stepId: BuildStepId,
 }
 
-type BuildItem = BaseBuildItem | EnchantmentBuildItem | StepBuildItem;
+export type BuildItem = BaseBuildItem | EnchantmentBuildItem | StepBuildItem;
 
-type BuildStepId = string;
+export type BuildStepId = string;
 
-interface BuildStep {
+export interface BuildStep {
   stepId: BuildStepId,
   hasBase: boolean,
   enchantments: List<Enchantment>,
@@ -197,16 +203,20 @@ interface BuildStep {
   levelCost: number,
 }
 
-type BuildPlan = List<BuildStep>;
+export type BuildPlan = Map<BuildStepId, BuildStep>;
 
 const STEP_IDS = List('ABCDEFGHIJKL');
 
-function toBuildItem(item: Item): BuildItem {
+function toBuildItem(item: Item, itemStepIds: Map<Item, BuildStepId>): BuildItem {
   if (item.target === undefined && item.sac === undefined) {
-    if (item.comps.has(BASE_COMPONENT)) return { kind: 'base' };
+    if (hasBaseItem(item)) return { kind: 'base' };
     return { kind: 'enchantment', enchantment: item.comps.first() as Enchantment };
   }
-
+  console.assert(itemStepIds.has(item));
+  return {
+    kind: 'step',
+    stepId: itemStepIds.get(item)!,
+  };
 }
 
 function toBuildPlan(item: Item): BuildPlan {
@@ -219,12 +229,21 @@ function toBuildPlan(item: Item): BuildPlan {
   }
   traverse(item);
 
-  List(queue).reverse().zip(STEP_IDS).forEach(([item, stepId]) => {
+  const itemsWithStepIds = List(queue).reverse().zip(STEP_IDS);
+  const itemStepIds = OrderedMap(itemsWithStepIds);
+  const buildSteps = itemStepIds.mapEntries(([item, stepId]) => [
+    stepId,
+    {
+      stepId,
+      hasBase: hasBaseItem(item),
+      enchantments: item.comps.remove(BASE_COMPONENT).toList().map(comp => comp.kind as Enchantment).sort(),
+      target: toBuildItem(item.target!, itemStepIds),
+      sac: toBuildItem(item.sac!, itemStepIds),
+      levelCost: EXP_TO_LEVEL.get(item.combineExpCost)!,
+    }
+  ]);
 
-  })
-
-  // TODO
-  return List();
+  return buildSteps;
 }
 
 export function build(enchantments: List<Enchantment>): BuildPlan {

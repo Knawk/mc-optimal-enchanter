@@ -1,7 +1,12 @@
 import { List, Map } from 'immutable';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
-import { build } from './compute';
+import {
+  build,
+  BuildPlan,
+  BuildStep,
+  BuildItem,
+} from './compute';
 import {
   BaseItem,
   WEARABLE_BASE_ITEMS,
@@ -61,10 +66,10 @@ document.getElementById('go')!.onclick = function () {
       .keys()
   );
   console.log(enchantments.toArray());
-  const optimum = build(enchantments);
+  const buildPlan = build(enchantments);
   const endTime = Date.now();
-  console.log('optimum:', optimum);
   console.log('elapsed (ms):', endTime - startTime);
+  renderBuildPlan(buildPlan);
 };
 
 const enchantmentsList = document.getElementById(
@@ -105,6 +110,12 @@ function renderEnchantmentsList() {
     input.enabled = isCompatible;
     input.container.classList.toggle('enabled', isCompatible);
   });
+}
+
+function renderBuildPlan(buildPlan: BuildPlan) {
+  for (let [stepId, buildStep] of buildPlan) {
+    console.log(stepId + ':', buildStep);
+  }
 }
 
 initialRender();
