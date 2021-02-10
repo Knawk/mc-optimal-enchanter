@@ -1,7 +1,7 @@
 import 'regenerator-runtime/runtime';
 
 import { List, Map, Set, Range } from 'immutable';
-import { Enchantment } from './enchantments';
+import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
 
 interface Component {
   name: string;
@@ -183,7 +183,10 @@ function computeOptimalItem(enchants: List<Component>): Item {
 }
 
 export function compute(enchants: List<Enchantment>): Item {
-  let components = enchants.map(enchant => makeComponent(enchant.name, enchant.maxLevel * enchant.costMultiplier)).push(COMPONENTS.BASE);
+  let components = enchants.map(enchant => {
+    const data = ENCHANTMENT_DATA.get(enchant)!;
+    return makeComponent(data.name, data.maxLevel * data.costMultiplier);
+  }).push(COMPONENTS.BASE);
   return computeOptimalItem(components);
 }
 

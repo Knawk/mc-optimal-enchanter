@@ -1,8 +1,17 @@
 <html>
   <body>
     <h1>Enchant optimally!</h1>
+    <p>
+      Enchant a
+      <select id="baseItem">
+        <option value="1" selected>Sword</option>
+        <option value="2">Pickaxe</option>
+        <option value="3">Helmet</option>
+      </select>
+      with these enchantments:
+      <div id="enchantments"></div>
+    </p>
     <button id="go">Go</button>
-    <div id="enchantments"></div>
     <script src="./index.ts"></script>
   </body>
 </html>

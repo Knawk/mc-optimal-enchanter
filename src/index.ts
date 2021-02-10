@@ -1,40 +1,51 @@
-import { List } from 'immutable';
+import { List, Map } from 'immutable';
 
-import { Enchantment, ENCHANTMENTS } from './enchantments';
+import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
 import { compute } from './compute';
 
 const YEP = [
-  ENCHANTMENTS.SWEEPING_EDGE,
-  ENCHANTMENTS.LOOTING,
-  ENCHANTMENTS.UNBREAKING,
-  ENCHANTMENTS.KNOCKBACK,
-  ENCHANTMENTS.FIRE_ASPECT,
-  ENCHANTMENTS.MENDING,
-  ENCHANTMENTS.SHARPNESS,
+  Enchantment.SWEEPING_EDGE,
+  Enchantment.LOOTING,
+  Enchantment.UNBREAKING,
+  Enchantment.KNOCKBACK,
+  Enchantment.FIRE_ASPECT,
+  Enchantment.MENDING,
+  Enchantment.SHARPNESS,
 ];
 
-const enchantmentsEl = document.getElementById('enchantments')!;
-for (let enchantmentId in ENCHANTMENTS) {
-  const checkboxEl = document.createElement('input');
-  checkboxEl.type = 'checkbox';
-  checkboxEl.name = enchantmentId;
-  checkboxEl.classList.add('enchantmentCheckbox');
-  if (YEP.indexOf(ENCHANTMENTS[enchantmentId]) !== -1) {
-    checkboxEl.checked = true;
-  }
-  const labelEl = document.createElement('label');
-  labelEl.appendChild(checkboxEl);
-  labelEl.appendChild(document.createTextNode(ENCHANTMENTS[enchantmentId].name));
-  const parEl = document.createElement('p');
-  parEl.appendChild(labelEl);
-  enchantmentsEl.appendChild(parEl);
+interface EnchantmentInput {
+  container: HTMLElement,
+  checkbox: HTMLInputElement,
+  enabled: boolean,
 }
+
+const enchantmentsEl = document.getElementById('enchantments')!;
+const enchantmentInputs: Map<Enchantment, EnchantmentInput> = ENCHANTMENT_DATA.map((enchantmentData, enchantment) => {
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  if (YEP.indexOf(enchantment) !== -1) {
+    checkbox.checked = true;
+  }
+  const label = document.createElement('label');
+  label.appendChild(checkbox);
+  label.appendChild(document.createTextNode(ENCHANTMENT_DATA.get(enchantment)!.name));
+
+  const container = document.createElement('p');
+  container.appendChild(label);
+
+  return {
+    container,
+    checkbox,
+    enabled: false,
+  };
+});
 
 document.getElementById('go')!.onclick = function() {
   const startTime = Date.now();
-  const checkboxes: List<HTMLInputElement> = List(enchantmentsEl.querySelectorAll('.enchantmentCheckbox'));
-  const enchantmentIds = checkboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.name);
-  const optimum = compute(enchantmentIds.map(id => ENCHANTMENTS[id]));
+  const enchantments = List(enchantmentInputs
+    .filter(input => input.enabled && input.checkbox.checked)
+    .keys());
+  const optimum = compute(enchantments);
   const endTime = Date.now();
   console.log('optimum:', optimum);
   console.log('elapsed (ms):', endTime - startTime);
