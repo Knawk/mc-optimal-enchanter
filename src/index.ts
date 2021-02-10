@@ -11,6 +11,9 @@ import {
   getCompatibleEnchantments,
 } from './baseItems';
 
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.css';
+
 const YEP = [
   Enchantment.SweepingEdge,
   Enchantment.Looting,
