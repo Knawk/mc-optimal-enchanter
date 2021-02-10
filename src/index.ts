@@ -1,7 +1,7 @@
 import { List, Map } from 'immutable';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
-import { build, BuildPlan, BuildStep, BuildItem } from './compute';
+import { build, BuildPlan, BuildStep, BuildItem } from './build';
 import {
   BaseItem,
   WEARABLE_BASE_ITEMS,
