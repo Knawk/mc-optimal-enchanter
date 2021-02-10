@@ -90,7 +90,7 @@ function initialRender() {
     baseItemSelect.appendChild(option);
   }
 
-  ENCHANTMENT_DATA.sortBy(data => data.name).forEach((data, enchantment) => {
+  ENCHANTMENT_DATA.sortBy((data) => data.name).forEach((data, enchantment) => {
     enchantmentsList.appendChild(enchantmentInputs.get(enchantment)!.container);
   });
 
