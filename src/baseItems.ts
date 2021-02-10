@@ -1,4 +1,4 @@
-import { List, Map } from 'immutable';
+import { List, Map, Set } from 'immutable';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
 
@@ -87,13 +87,13 @@ export const BASE_ITEM_NAMES: Map<BaseItem, string> = Map([
 
 export function getCompatibleEnchantments(
   baseItem: BaseItem
-): List<Enchantment> {
+): Set<Enchantment> {
   // These are always compatible
-  const enchantments = [
+  const enchantments = List([
     Enchantment.Unbreaking,
     Enchantment.Mending,
     Enchantment.CurseOfVanishing,
-  ];
+  ]).asMutable();
 
   // Wearables
 
@@ -186,7 +186,5 @@ export function getCompatibleEnchantments(
     enchantments.concat([Enchantment.Lure, Enchantment.LuckOfTheSea]);
   }
 
-  return List(enchantments).sortBy(
-    (enchantment) => ENCHANTMENT_DATA.get(enchantment)!.name
-  );
+  return Set(enchantments);
 }

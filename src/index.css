@@ -1,0 +1,7 @@
+.enchantmentContainer {
+  display: none;
+}
+
+.enchantmentContainer.enabled {
+  display: inherit;
+}
