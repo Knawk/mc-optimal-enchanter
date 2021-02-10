@@ -10,7 +10,10 @@ interface Component {
 
 type Memo = Map<Set<Component>, Map<number, Item>>;
 
-function makeComponent(kind: 'Base' | Enchantment, maxLevelCost: number): Component {
+function makeComponent(
+  kind: 'Base' | Enchantment,
+  maxLevelCost: number
+): Component {
   return { kind, maxLevelCost };
 }
 
@@ -44,11 +47,13 @@ function levelToExp(level: number): number {
   return 4.5 * level * level + 162.5 * level + 2220;
 }
 
-const EXP_TO_LEVEL = Map(Range(0, 100).map(level => {
-  // Must round because floating-point equality is bad news
-  const exp = Math.round(levelToExp(level));
-  return [exp, level];
-}));
+const EXP_TO_LEVEL = Map(
+  Range(0, 100).map((level) => {
+    // Must round because floating-point equality is bad news
+    const exp = Math.round(levelToExp(level));
+    return [exp, level];
+  })
+);
 
 function combine(target: Item, sac: Item): Item {
   const combineLevelCost =
@@ -177,17 +182,17 @@ function computeOptimalItem(comps: List<Component>): Item {
 }
 
 interface BaseBuildItem {
-  kind: 'base',
+  kind: 'base';
 }
 
 interface EnchantmentBuildItem {
-  kind: 'enchantment',
-  enchantment: Enchantment,
+  kind: 'enchantment';
+  enchantment: Enchantment;
 }
 
 interface StepBuildItem {
-  kind: 'step',
-  stepId: BuildStepId,
+  kind: 'step';
+  stepId: BuildStepId;
 }
 
 export type BuildItem = BaseBuildItem | EnchantmentBuildItem | StepBuildItem;
@@ -195,22 +200,28 @@ export type BuildItem = BaseBuildItem | EnchantmentBuildItem | StepBuildItem;
 export type BuildStepId = string;
 
 export interface BuildStep {
-  stepId: BuildStepId,
-  hasBase: boolean,
-  enchantments: List<Enchantment>,
-  target: BuildItem,
-  sac: BuildItem,
-  levelCost: number,
+  stepId: BuildStepId;
+  hasBase: boolean;
+  enchantments: List<Enchantment>;
+  target: BuildItem;
+  sac: BuildItem;
+  levelCost: number;
 }
 
 export type BuildPlan = Map<BuildStepId, BuildStep>;
 
 const STEP_IDS = List('ABCDEFGHIJKL');
 
-function toBuildItem(item: Item, itemStepIds: Map<Item, BuildStepId>): BuildItem {
+function toBuildItem(
+  item: Item,
+  itemStepIds: Map<Item, BuildStepId>
+): BuildItem {
   if (item.target === undefined && item.sac === undefined) {
     if (hasBaseItem(item)) return { kind: 'base' };
-    return { kind: 'enchantment', enchantment: item.comps.first() as Enchantment };
+    return {
+      kind: 'enchantment',
+      enchantment: (item.comps.first() as Component).kind as Enchantment,
+    };
   }
   console.assert(itemStepIds.has(item));
   return {
@@ -236,11 +247,15 @@ function toBuildPlan(item: Item): BuildPlan {
     {
       stepId,
       hasBase: hasBaseItem(item),
-      enchantments: item.comps.remove(BASE_COMPONENT).toList().map(comp => comp.kind as Enchantment).sort(),
+      enchantments: item.comps
+        .remove(BASE_COMPONENT)
+        .toList()
+        .map((comp) => comp.kind as Enchantment)
+        .sort(),
       target: toBuildItem(item.target!, itemStepIds),
       sac: toBuildItem(item.sac!, itemStepIds),
       levelCost: EXP_TO_LEVEL.get(item.combineExpCost)!,
-    }
+    },
   ]);
 
   return buildSteps;

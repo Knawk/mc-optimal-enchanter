@@ -1,12 +1,7 @@
 import { List, Map } from 'immutable';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
-import {
-  build,
-  BuildPlan,
-  BuildStep,
-  BuildItem,
-} from './compute';
+import { build, BuildPlan, BuildStep, BuildItem } from './compute';
 import {
   BaseItem,
   WEARABLE_BASE_ITEMS,
@@ -112,9 +107,26 @@ function renderEnchantmentsList() {
   });
 }
 
+function renderBuildItem(buildItem: BuildItem): string {
+  switch (buildItem.kind) {
+    case 'base':
+      return BASE_ITEM_NAMES.get(baseItemSelect.value as BaseItem)!;
+    case 'enchantment':
+      return ENCHANTMENT_DATA.get(buildItem.enchantment)!.name;
+    case 'step':
+      return buildItem.stepId;
+    default:
+      throw Error();
+  }
+}
+
 function renderBuildPlan(buildPlan: BuildPlan) {
   for (let [stepId, buildStep] of buildPlan) {
-    console.log(stepId + ':', buildStep);
+    const targetRendered = renderBuildItem(buildStep.target);
+    const sacRendered = renderBuildItem(buildStep.sac);
+    console.log(
+      `${stepId} = ${targetRendered} + ${sacRendered} (${buildStep.levelCost} levels)`
+    );
   }
 }
 
