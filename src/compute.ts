@@ -4,29 +4,20 @@ import { List, Map, Set, Range } from 'immutable';
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
 
 interface Component {
-  name: string;
+  kind: 'Base' | Enchantment;
   maxLevelCost: number;
 }
 
 type Memo = Map<Set<Component>, Map<number, Item>>;
 
-function makeComponent(name: string, maxLevelCost: number): Component {
-  return { name, maxLevelCost };
+function makeComponent(kind: 'Base' | Enchantment, maxLevelCost: number): Component {
+  return { kind, maxLevelCost };
 }
 
-const COMPONENTS: { [_: string]: Component } = {
-  BASE: makeComponent('Base', 0),
-  UNBREAKING: makeComponent('Unbreaking', 3 * 1),
-  LOOTING: makeComponent('Looting', 3 * 2),
-  SWEEPING_EDGE: makeComponent('Sweeping Edge', 3 * 2),
-  SHARPNESS: makeComponent('Sharpness', 5 * 1),
-  KNOCKBACK: makeComponent('Looting', 2 * 1),
-  FIRE_ASPECT: makeComponent('Looting', 2 * 2),
-  MENDING: makeComponent('Looting', 1 * 2),
-};
+const BASE_COMPONENT = makeComponent('Base', 0);
 
 interface Item {
-  enchants: Set<Component>;
+  comps: Set<Component>;
   workCount: number;
   enchantLevelCost: number;
   combineExpCost: number;
@@ -36,7 +27,7 @@ interface Item {
 }
 
 const SENTINEL_ITEM: Item = {
-  enchants: Set(),
+  comps: Set(),
   workCount: 0,
   enchantLevelCost: 0,
   combineExpCost: 0,
@@ -61,7 +52,7 @@ function combine(target: Item, sac: Item): Item {
   const combineExpCost = levelToExp(combineLevelCost);
   const workCount = Math.max(target.workCount, sac.workCount) + 1;
   return {
-    enchants: target.enchants.union(sac.enchants),
+    comps: target.comps.union(sac.comps),
     workCount,
     enchantLevelCost: target.enchantLevelCost + sac.enchantLevelCost,
     combineExpCost,
@@ -111,15 +102,15 @@ function* nonemptyPartitions<T>(vals: List<T>): IterableIterator<Set<T>> {
 }
 
 function hasBaseItem(item: Item): boolean {
-  return item.enchants.has(COMPONENTS.BASE);
+  return item.comps.has(BASE_COMPONENT);
 }
 
 function* combinedItems(
-  goalEnchants: List<Component>,
+  goalComps: List<Component>,
   memo: Memo
 ): IterableIterator<Item> {
-  const goalSet = Set(goalEnchants);
-  for (let leftCell of nonemptyPartitions(goalEnchants)) {
+  const goalSet = Set(goalComps);
+  for (let leftCell of nonemptyPartitions(goalComps)) {
     const rightCell = goalSet.subtract(leftCell);
     for (let leftItem of memo.get(leftCell)!.values()) {
       if (leftItem === SENTINEL_ITEM) continue;
@@ -139,19 +130,19 @@ function* combinedItems(
   }
 }
 
-function computeOptimalItem(enchants: List<Component>): Item {
+function computeOptimalItem(comps: List<Component>): Item {
   let memo: Memo = Map<Set<Component>, Map<number, Item>>().asMutable();
-  for (let enchant of enchants) {
-    const singleton = Set([enchant]);
+  for (let component of comps) {
+    const singleton = Set([component]);
     memo.set(
       singleton,
       Map([
         [
           0,
           {
-            enchants: singleton,
+            comps: singleton,
             workCount: 0,
-            enchantLevelCost: enchant.maxLevelCost,
+            enchantLevelCost: component.maxLevelCost,
             combineExpCost: 0,
             completeExpCost: 0,
           },
@@ -160,12 +151,12 @@ function computeOptimalItem(enchants: List<Component>): Item {
     );
   }
 
-  for (let subsetSize of Range(2, enchants.size + 1)) {
+  for (let subsetSize of Range(2, comps.size + 1)) {
     const depthRange = List(Range(0, subsetSize));
-    for (let goalEnchants of combinations(enchants, subsetSize)) {
-      const goalSet = Set(goalEnchants);
+    for (let goalComps of combinations(comps, subsetSize)) {
+      const goalSet = Set(goalComps);
       memo.set(goalSet, Map(depthRange.map((depth) => [depth, SENTINEL_ITEM])));
-      for (let combinedItem of combinedItems(goalEnchants, memo)) {
+      for (let combinedItem of combinedItems(goalComps, memo)) {
         let currentBestCost = memo.getIn([goalSet, combinedItem.workCount])
           .completeExpCost;
         if (combinedItem.completeExpCost < currentBestCost) {
@@ -175,43 +166,73 @@ function computeOptimalItem(enchants: List<Component>): Item {
     }
   }
 
-  const candidateItems = List(memo.get(Set(enchants))!.values());
+  const candidateItems = List(memo.get(Set(comps))!.values());
   return candidateItems.minBy((item) => item.completeExpCost)!;
 }
 
-export function compute(enchants: List<Enchantment>): Item {
-  let components = enchants
-    .map((enchant) => {
-      const data = ENCHANTMENT_DATA.get(enchant)!;
-      return makeComponent(data.name, data.maxLevel * data.costMultiplier);
-    })
-    .push(COMPONENTS.BASE);
-  return computeOptimalItem(components);
+interface BaseBuildItem {
+  kind: 'base',
 }
 
-function benchmark() {
-  const trials = 20;
-  let optimal;
-  const startTime = Date.now();
-  for (let i = 0; i < trials; i++) {
-    optimal = computeOptimalItem(
-      List([
-        COMPONENTS.BASE,
-        COMPONENTS.SWEEPING_EDGE,
-        COMPONENTS.LOOTING,
-        COMPONENTS.UNBREAKING,
-        COMPONENTS.KNOCKBACK,
-        COMPONENTS.FIRE_ASPECT,
-        COMPONENTS.MENDING,
-        COMPONENTS.SHARPNESS,
-      ])
-    );
-  }
-  const endTime = Date.now();
+interface EnchantmentBuildItem {
+  kind: 'enchantment',
+  enchantment: Enchantment,
+}
 
-  const elapsed = endTime - startTime;
-  const average = elapsed / trials;
-  console.log('elapsed (ms):', endTime - startTime);
-  console.log('average (ms):', average);
-  console.log('optimal:', optimal);
+interface StepBuildItem {
+  kind: 'step',
+  stepId: BuildStepId,
+}
+
+type BuildItem = BaseBuildItem | EnchantmentBuildItem | StepBuildItem;
+
+type BuildStepId = string;
+
+interface BuildStep {
+  stepId: BuildStepId,
+  hasBase: boolean,
+  enchantments: List<Enchantment>,
+  target: BuildItem,
+  sac: BuildItem,
+  levelCost: number,
+}
+
+type BuildPlan = List<BuildStep>;
+
+const STEP_IDS = List('ABCDEFGHIJKL');
+
+function toBuildItem(item: Item): BuildItem {
+  if (item.target === undefined && item.sac === undefined) {
+    if (item.comps.has(BASE_COMPONENT)) return { kind: 'base' };
+    return { kind: 'enchantment', enchantment: item.comps.first() as Enchantment };
+  }
+
+}
+
+function toBuildPlan(item: Item): BuildPlan {
+  const queue: Item[] = [];
+  function traverse(i: Item) {
+    if (i.workCount < 1) return;
+    queue.push(i);
+    traverse(i.sac!);
+    traverse(i.target!);
+  }
+  traverse(item);
+
+  List(queue).reverse().zip(STEP_IDS).forEach(([item, stepId]) => {
+
+  })
+
+  // TODO
+  return List();
+}
+
+export function build(enchantments: List<Enchantment>): BuildPlan {
+  let components = enchantments
+    .map((enchantment) => {
+      const data = ENCHANTMENT_DATA.get(enchantment)!;
+      return makeComponent(enchantment, data.maxLevel * data.costMultiplier);
+    })
+    .push(BASE_COMPONENT);
+  return toBuildPlan(computeOptimalItem(components));
 }

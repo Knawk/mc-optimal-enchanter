@@ -1,7 +1,7 @@
 import { List, Map } from 'immutable';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
-import { compute } from './compute';
+import { build } from './compute';
 import {
   BaseItem,
   WEARABLE_BASE_ITEMS,
@@ -61,7 +61,7 @@ document.getElementById('go')!.onclick = function () {
       .keys()
   );
   console.log(enchantments.toArray());
-  const optimum = compute(enchantments);
+  const optimum = build(enchantments);
   const endTime = Date.now();
   console.log('optimum:', optimum);
   console.log('elapsed (ms):', endTime - startTime);
