@@ -164,10 +164,7 @@ function computeOptimalItem(enchants: List<Component>): Item {
     const depthRange = List(Range(0, subsetSize));
     for (let goalEnchants of combinations(enchants, subsetSize)) {
       const goalSet = Set(goalEnchants);
-      memo.set(
-        goalSet,
-        Map(depthRange.map((depth) => [depth, SENTINEL_ITEM]))
-      );
+      memo.set(goalSet, Map(depthRange.map((depth) => [depth, SENTINEL_ITEM])));
       for (let combinedItem of combinedItems(goalEnchants, memo)) {
         let currentBestCost = memo.getIn([goalSet, combinedItem.workCount])
           .completeExpCost;
@@ -183,10 +180,12 @@ function computeOptimalItem(enchants: List<Component>): Item {
 }
 
 export function compute(enchants: List<Enchantment>): Item {
-  let components = enchants.map(enchant => {
-    const data = ENCHANTMENT_DATA.get(enchant)!;
-    return makeComponent(data.name, data.maxLevel * data.costMultiplier);
-  }).push(COMPONENTS.BASE);
+  let components = enchants
+    .map((enchant) => {
+      const data = ENCHANTMENT_DATA.get(enchant)!;
+      return makeComponent(data.name, data.maxLevel * data.costMultiplier);
+    })
+    .push(COMPONENTS.BASE);
   return computeOptimalItem(components);
 }
 
@@ -216,4 +215,3 @@ function benchmark() {
   console.log('average (ms):', average);
   console.log('optimal:', optimal);
 }
-

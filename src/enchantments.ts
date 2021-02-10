@@ -42,12 +42,16 @@ export enum Enchantment {
 }
 
 export interface EnchantmentData {
-  name: string,
-  maxLevel: number,
-  costMultiplier: number,
+  name: string;
+  maxLevel: number;
+  costMultiplier: number;
 }
 
-function enchantmentData(name: string, maxLevel: number, costMultiplier: number): EnchantmentData {
+function enchantmentData(
+  name: string,
+  maxLevel: number,
+  costMultiplier: number
+): EnchantmentData {
   return { name, maxLevel, costMultiplier };
 }
 
@@ -57,7 +61,10 @@ export const ENCHANTMENT_DATA: Map<Enchantment, EnchantmentData> = Map([
   [Enchantment.FireProtection, enchantmentData('Fire Protection', 4, 1)],
   [Enchantment.FeatherFalling, enchantmentData('Feather Falling', 4, 1)],
   [Enchantment.BlastProtection, enchantmentData('Blast Protection', 4, 2)],
-  [Enchantment.ProjectileProtection, enchantmentData('Projectile Protection', 4, 1)],
+  [
+    Enchantment.ProjectileProtection,
+    enchantmentData('Projectile Protection', 4, 1),
+  ],
   [Enchantment.Thorns, enchantmentData('Thorns', 3, 4)],
   [Enchantment.Respiration, enchantmentData('Respiration', 3, 2)],
   [Enchantment.DepthStrider, enchantmentData('Depth Strider', 3, 2)],
@@ -66,7 +73,7 @@ export const ENCHANTMENT_DATA: Map<Enchantment, EnchantmentData> = Map([
   [Enchantment.Smite, enchantmentData('Smite', 5, 1)],
   [Enchantment.BaneOfArthropods, enchantmentData('Bane of Arthropods', 5, 1)],
   [Enchantment.Knockback, enchantmentData('Knockback', 2, 1)],
-  [Enchantment.FireAspect, enchantmentData('Fire Aspect', 2 , 2)],
+  [Enchantment.FireAspect, enchantmentData('Fire Aspect', 2, 2)],
   [Enchantment.Looting, enchantmentData('Looting', 3, 2)],
   [Enchantment.Efficiency, enchantmentData('Efficiency', 5, 1)],
   [Enchantment.SilkTouch, enchantmentData('Silk Touch', 1, 4)],
@@ -79,7 +86,7 @@ export const ENCHANTMENT_DATA: Map<Enchantment, EnchantmentData> = Map([
   [Enchantment.LuckOfTheSea, enchantmentData('Luck of the Sea', 3, 2)],
   [Enchantment.Lure, enchantmentData('Lure', 3, 2)],
   [Enchantment.FrostWalker, enchantmentData('Frost Walker', 2, 2)],
-  [Enchantment.Mending, enchantmentData('Mending', 1 , 2)],
+  [Enchantment.Mending, enchantmentData('Mending', 1, 2)],
   [Enchantment.CurseOfBinding, enchantmentData('Curse of Binding', 1, 4)],
   [Enchantment.CurseOfVanishing, enchantmentData('Curse of Vanishing', 1, 4)],
   [Enchantment.Impaling, enchantmentData('Impaling', 5, 2)],
@@ -94,11 +101,7 @@ export const ENCHANTMENT_DATA: Map<Enchantment, EnchantmentData> = Map([
 ]);
 
 const MUTUAL_EXCLUSION_SETS: List<Set<Enchantment>> = List([
-  Set([
-    Enchantment.BaneOfArthropods,
-    Enchantment.Smite,
-    Enchantment.Sharpness,
-  ]),
+  Set([Enchantment.BaneOfArthropods, Enchantment.Smite, Enchantment.Sharpness]),
   Set([
     Enchantment.Protection,
     Enchantment.BlastProtection,
@@ -107,28 +110,10 @@ const MUTUAL_EXCLUSION_SETS: List<Set<Enchantment>> = List([
   ]),
   // Loyalty and Channeling are each mutually exclusive from Riptide, but not
   // from each other.
-  Set([
-    Enchantment.Loyalty,
-    Enchantment.Riptide,
-  ]),
-  Set([
-    Enchantment.Channeling,
-    Enchantment.Riptide,
-  ]),
-  Set([
-    Enchantment.DepthStrider,
-    Enchantment.FrostWalker,
-  ]),
-  Set([
-    Enchantment.Fortune,
-    Enchantment.SilkTouch,
-  ]),
-  Set([
-    Enchantment.Infinity,
-    Enchantment.Mending,
-  ]),
-  Set([
-    Enchantment.Multishot,
-    Enchantment.Piercing,
-  ]),
-])
+  Set([Enchantment.Loyalty, Enchantment.Riptide]),
+  Set([Enchantment.Channeling, Enchantment.Riptide]),
+  Set([Enchantment.DepthStrider, Enchantment.FrostWalker]),
+  Set([Enchantment.Fortune, Enchantment.SilkTouch]),
+  Set([Enchantment.Infinity, Enchantment.Mending]),
+  Set([Enchantment.Multishot, Enchantment.Piercing]),
+]);

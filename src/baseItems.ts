@@ -4,29 +4,29 @@ import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
 
 export enum BaseItem {
   // Armor
-  Helmet = "HELMET",
-  Chestplate = "CHESTPLATE",
-  Leggings = "LEGGINGS",
-  Boots = "BOOTS",
-  Elytra = "ELYTRA",
+  Helmet = 'HELMET',
+  Chestplate = 'CHESTPLATE',
+  Leggings = 'LEGGINGS',
+  Boots = 'BOOTS',
+  Elytra = 'ELYTRA',
 
   // Combat
-  Sword = "SWORD",
-  Bow = "BOW",
-  Crossbow = "CROSSBOW",
-  Trident = "TRIDENT",
-  Shield = "SHIELD",
+  Sword = 'SWORD',
+  Bow = 'BOW',
+  Crossbow = 'CROSSBOW',
+  Trident = 'TRIDENT',
+  Shield = 'SHIELD',
 
   // Tools
-  Pickaxe = "PICKAXE",
-  Axe = "AXE",
-  Shovel = "SHOVEL",
-  Hoe = "HOE",
-  FishingRod = "FISHING_ROD",
-  Shears = "SHEARS",
-  FlintSteel = "FLINT_STEEL",
-  CarrotOnAStick = "CARROT_STICK",
-  WarpedFungusOnAStick = "WARPED_FUNGUS_STICK",
+  Pickaxe = 'PICKAXE',
+  Axe = 'AXE',
+  Shovel = 'SHOVEL',
+  Hoe = 'HOE',
+  FishingRod = 'FISHING_ROD',
+  Shears = 'SHEARS',
+  FlintSteel = 'FLINT_STEEL',
+  CarrotOnAStick = 'CARROT_STICK',
+  WarpedFungusOnAStick = 'WARPED_FUNGUS_STICK',
 }
 
 export const ARMOR_BASE_ITEMS: List<BaseItem> = List([
@@ -36,7 +36,9 @@ export const ARMOR_BASE_ITEMS: List<BaseItem> = List([
   BaseItem.Helmet,
 ]);
 
-export const WEARABLE_BASE_ITEMS: List<BaseItem> = ARMOR_BASE_ITEMS.push(BaseItem.Elytra);
+export const WEARABLE_BASE_ITEMS: List<BaseItem> = ARMOR_BASE_ITEMS.push(
+  BaseItem.Elytra
+);
 
 export const COMBAT_BASE_ITEMS: List<BaseItem> = List([
   BaseItem.Sword,
@@ -62,28 +64,30 @@ export const TOOL_BASE_ITEMS: List<BaseItem> = PRIMARY_TOOL_BASE_ITEMS.concat([
 ]);
 
 export const BASE_ITEM_NAMES: Map<BaseItem, string> = Map([
-  [BaseItem.Helmet, "Helmet"],
-  [BaseItem.Chestplate, "Chestplate"],
-  [BaseItem.Leggings, "Leggings"],
-  [BaseItem.Boots, "Boots"],
-  [BaseItem.Elytra, "Elytra"],
-  [BaseItem.Sword, "Sword"],
-  [BaseItem.Bow, "Bow"],
-  [BaseItem.Crossbow, "Crossbow"],
-  [BaseItem.Trident, "Trident"],
-  [BaseItem.Shield, "Shield"],
-  [BaseItem.Pickaxe, "Pickaxe"],
-  [BaseItem.Axe, "Axe"],
-  [BaseItem.Shovel, "Shovel"],
-  [BaseItem.Hoe, "Hoe"],
-  [BaseItem.FishingRod, "Fishing Rod"],
-  [BaseItem.Shears, "Shears"],
-  [BaseItem.FlintSteel, "Flint and Steel"],
-  [BaseItem.CarrotOnAStick, "Carrot on a Stick"],
-  [BaseItem.WarpedFungusOnAStick, "Warped Fungus on a Stick"],
+  [BaseItem.Helmet, 'Helmet'],
+  [BaseItem.Chestplate, 'Chestplate'],
+  [BaseItem.Leggings, 'Leggings'],
+  [BaseItem.Boots, 'Boots'],
+  [BaseItem.Elytra, 'Elytra'],
+  [BaseItem.Sword, 'Sword'],
+  [BaseItem.Bow, 'Bow'],
+  [BaseItem.Crossbow, 'Crossbow'],
+  [BaseItem.Trident, 'Trident'],
+  [BaseItem.Shield, 'Shield'],
+  [BaseItem.Pickaxe, 'Pickaxe'],
+  [BaseItem.Axe, 'Axe'],
+  [BaseItem.Shovel, 'Shovel'],
+  [BaseItem.Hoe, 'Hoe'],
+  [BaseItem.FishingRod, 'Fishing Rod'],
+  [BaseItem.Shears, 'Shears'],
+  [BaseItem.FlintSteel, 'Flint and Steel'],
+  [BaseItem.CarrotOnAStick, 'Carrot on a Stick'],
+  [BaseItem.WarpedFungusOnAStick, 'Warped Fungus on a Stick'],
 ]);
 
-export function getCompatibleEnchantments(baseItem: BaseItem): List<Enchantment> {
+export function getCompatibleEnchantments(
+  baseItem: BaseItem
+): List<Enchantment> {
   // These are always compatible
   const enchantments = [
     Enchantment.Unbreaking,
@@ -104,10 +108,7 @@ export function getCompatibleEnchantments(baseItem: BaseItem): List<Enchantment>
   }
 
   if (baseItem === BaseItem.Helmet) {
-    enchantments.concat([
-      Enchantment.AquaAffinity,
-      Enchantment.Respiration,
-    ]);
+    enchantments.concat([Enchantment.AquaAffinity, Enchantment.Respiration]);
   }
 
   if (baseItem === BaseItem.Boots) {
@@ -182,11 +183,10 @@ export function getCompatibleEnchantments(baseItem: BaseItem): List<Enchantment>
   }
 
   if (baseItem === BaseItem.FishingRod) {
-    enchantments.concat([
-      Enchantment.Lure,
-      Enchantment.LuckOfTheSea,
-    ]);
+    enchantments.concat([Enchantment.Lure, Enchantment.LuckOfTheSea]);
   }
 
-  return List(enchantments).sortBy(enchantment => ENCHANTMENT_DATA.get(enchantment)!.name);
+  return List(enchantments).sortBy(
+    (enchantment) => ENCHANTMENT_DATA.get(enchantment)!.name
+  );
 }
