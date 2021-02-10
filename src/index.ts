@@ -2,15 +2,16 @@ import { List, Map } from 'immutable';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
 import { compute } from './compute';
+import { BaseItem, WEARABLE_BASE_ITEMS, COMBAT_BASE_ITEMS, TOOL_BASE_ITEMS, BASE_ITEM_NAMES } from './baseItems';
 
 const YEP = [
-  Enchantment.SWEEPING_EDGE,
-  Enchantment.LOOTING,
-  Enchantment.UNBREAKING,
-  Enchantment.KNOCKBACK,
-  Enchantment.FIRE_ASPECT,
-  Enchantment.MENDING,
-  Enchantment.SHARPNESS,
+  Enchantment.SweepingEdge,
+  Enchantment.Looting,
+  Enchantment.Unbreaking,
+  Enchantment.Knockback,
+  Enchantment.FireAspect,
+  Enchantment.Mending,
+  Enchantment.Sharpness,
 ];
 
 interface EnchantmentInput {
@@ -19,7 +20,6 @@ interface EnchantmentInput {
   enabled: boolean,
 }
 
-const enchantmentsEl = document.getElementById('enchantments')!;
 const enchantmentInputs: Map<Enchantment, EnchantmentInput> = ENCHANTMENT_DATA.map((enchantmentData, enchantment) => {
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
@@ -50,3 +50,32 @@ document.getElementById('go')!.onclick = function() {
   console.log('optimum:', optimum);
   console.log('elapsed (ms):', endTime - startTime);
 };
+
+const enchantmentsContainer = document.getElementById('enchantmentsContainer') as HTMLElement;
+const baseItemSelect = document.getElementById('baseItemSelect') as HTMLInputElement;
+baseItemSelect.onchange = function() {
+  renderEnchantmentsContainer();
+};
+
+function initialRender() {
+  const baseItems = List([
+    ...WEARABLE_BASE_ITEMS,
+    ...COMBAT_BASE_ITEMS,
+    ...TOOL_BASE_ITEMS,
+  ]).sortBy(baseItem => BASE_ITEM_NAMES.get(baseItem)!);
+  for (let baseItem of baseItems) {
+    const option = document.createElement('option');
+    option.value = baseItem;
+    option.innerText = BASE_ITEM_NAMES.get(baseItem)!;
+    baseItemSelect.appendChild(option);
+  }
+
+  renderEnchantmentsContainer();
+}
+
+function renderEnchantmentsContainer() {
+  const baseItem = baseItemSelect.value as BaseItem;
+  console.log(baseItem);
+}
+
+initialRender();
