@@ -33,7 +33,7 @@ export const ARMOR_BASE_ITEMS: List<BaseItem> = List([
   BaseItem.Helmet,
   BaseItem.Chestplate,
   BaseItem.Leggings,
-  BaseItem.Helmet,
+  BaseItem.Boots,
 ]);
 
 export const WEARABLE_BASE_ITEMS: List<BaseItem> = ARMOR_BASE_ITEMS.push(
