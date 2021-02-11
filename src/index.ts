@@ -98,17 +98,15 @@ const EnchantmentsList = {
                     choice.level = Number(e.target.value);
                   },
                 },
-                Range(0, data.maxLevel + 1)
-                  .map((level) =>
-                    m(
-                      'option',
-                      {
-                        value: level,
-                      },
-                      formatEnchantmentLevel(level)
-                    )
+                [0, ...Range(data.maxLevel, 0)].map((level) =>
+                  m(
+                    'option',
+                    {
+                      value: level,
+                    },
+                    formatEnchantmentLevel(level)
                   )
-                  .toArray()
+                )
               ),
             ]),
           ]
