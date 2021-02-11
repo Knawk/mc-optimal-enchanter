@@ -15,17 +15,12 @@ import {
   COMBAT_BASE_ITEMS,
   TOOL_BASE_ITEMS,
   BASE_ITEM_NAMES,
+  ALL_BASE_ITEMS,
   getCompatibleEnchantments,
 } from './baseItems';
 
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
-
-const ALL_BASE_ITEMS = List([
-  ...WEARABLE_BASE_ITEMS,
-  ...COMBAT_BASE_ITEMS,
-  ...TOOL_BASE_ITEMS,
-]).sortBy((baseItem) => BASE_ITEM_NAMES.get(baseItem)!);
 
 interface InputModelProps {
   baseItem: BaseItem;

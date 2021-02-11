@@ -85,6 +85,12 @@ export const BASE_ITEM_NAMES: Map<BaseItem, string> = Map([
   [BaseItem.WarpedFungusOnAStick, 'Warped Fungus on a Stick'],
 ]);
 
+export const ALL_BASE_ITEMS = List([
+  ...WEARABLE_BASE_ITEMS,
+  ...COMBAT_BASE_ITEMS,
+  ...TOOL_BASE_ITEMS,
+]).sortBy((baseItem) => BASE_ITEM_NAMES.get(baseItem)!);
+
 export function getCompatibleEnchantments(
   baseItem: BaseItem
 ): Set<Enchantment> {
