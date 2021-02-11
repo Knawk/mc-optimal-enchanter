@@ -119,6 +119,7 @@ export function getCompatibleEnchantments(
 
   if (baseItem === BaseItem.Boots) {
     enchantments.concat([
+      Enchantment.FeatherFalling,
       Enchantment.DepthStrider,
       Enchantment.FrostWalker,
       Enchantment.SoulSpeed,
