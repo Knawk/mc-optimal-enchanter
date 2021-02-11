@@ -267,12 +267,7 @@ function toBuildPlan(item: Item): BuildPlan {
   return buildSteps;
 }
 
-export interface EnchantmentChoice {
-  enchantment: Enchantment;
-  level: number; // 0 for disabled
-}
-
-export function build(choices: List<EnchantmentChoice>): BuildPlan {
+export function build(choices: List<LeveledEnchantment>): BuildPlan {
   let components = choices
     .map(
       ({ enchantment, level }): Component => {

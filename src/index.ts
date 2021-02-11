@@ -5,6 +5,7 @@ import type { Vnode } from 'mithril';
 import {
   Enchantment,
   ENCHANTMENT_DATA,
+  LeveledEnchantment,
   formatEnchantment,
   formatEnchantmentLevel,
   formatLeveledEnchantment,
@@ -14,7 +15,6 @@ import {
   BuildPlan,
   BuildStep,
   BuildItem,
-  EnchantmentChoice,
 } from './build';
 import {
   BaseItem,
@@ -29,11 +29,17 @@ import {
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 
+interface EnchantmentChoice extends LeveledEnchantment {
+  isCompatible: boolean;
+}
+
 interface ModelProps {
   baseItem: BaseItem;
   enchantmentChoices: EnchantmentChoice[];
   buildPlan: BuildPlan;
 }
+
+const NO_BUILD_PLAN: BuildPlan = Map();
 
 const Model: ModelProps = {
   baseItem: BaseItem.Pickaxe,
@@ -42,12 +48,23 @@ const Model: ModelProps = {
     .map(([enchantment, data]) => ({
       enchantment,
       level: 0,
+      isCompatible: false,
     }))
     .toArray(),
-  buildPlan: Map(),
+  buildPlan: NO_BUILD_PLAN,
 };
 
+function updateCompatibleEnchantments() {
+  const compatibleEnchantments = getCompatibleEnchantments(Model.baseItem);
+  for (let choice of Model.enchantmentChoices) {
+    choice.isCompatible = compatibleEnchantments.has(choice.enchantment);
+  }
+}
+
 const BaseItemSelect = {
+  oninit: function () {
+    updateCompatibleEnchantments();
+  },
   view: function () {
     return m(
       'select.form-select',
@@ -55,6 +72,8 @@ const BaseItemSelect = {
         id: 'baseItemSelect',
         onchange: function (e: any) {
           Model.baseItem = e.target.value;
+          updateCompatibleEnchantments();
+          Model.buildPlan = NO_BUILD_PLAN;
         },
       },
       ALL_BASE_ITEMS.map((baseItem) =>
@@ -73,17 +92,15 @@ const BaseItemSelect = {
 
 const EnchantmentsList = {
   view: function () {
-    const compatibleEnchantments = getCompatibleEnchantments(Model.baseItem);
     return m(
-      'div.row',
+      '.row',
       Model.enchantmentChoices.map((choice) => {
-        const isCompatible = compatibleEnchantments.has(choice.enchantment);
         const data = ENCHANTMENT_DATA.get(choice.enchantment)!;
         const selectId = `enchantmentSelect_${choice.enchantment}`;
         return m(
           '.col-sm-6.enchantmentContainer',
           {
-            class: isCompatible ? '' : 'disabled',
+            class: choice.isCompatible ? '' : 'disabled',
           },
           [
             m('.input-group.mb-3', [
@@ -167,28 +184,31 @@ const View = {
   view: function () {
     return m('.row', [
       m('.col-lg-7.mb-3', [
-        m('h3', 'Select item and enchantments'),
-        m('.col-12.mb-3', [
-          m('.form-floating', [
-            m(BaseItemSelect),
-            m('label', { for: 'baseItemSelect' }, 'Base item'),
+        m('form', [
+          m('h3', 'Select item and enchantments'),
+          m('.col-12.mb-3', [
+            m('.form-floating', [
+              m(BaseItemSelect),
+              m('label', { for: 'baseItemSelect' }, 'Base item'),
+            ]),
           ]),
-        ]),
-        m('.col-12', [m('form', [m(EnchantmentsList)])]),
-        m('.col-12', [
-          m('.d-grid.gap-2.col-6.mx-auto', [
-            m(
-              'button.btn.btn-primary',
-              {
-                onclick: function (e: any) {
-                  const choices = List(
-                    Model.enchantmentChoices.filter(({ level }) => level > 0)
-                  );
-                  Model.buildPlan = build(choices);
+          m('.col-12', [m('form', [m(EnchantmentsList)])]),
+          m('.col-12', [
+            m('.d-grid.gap-2.col-6.mx-auto', [
+              m(
+                'button.btn.btn-primary',
+                {
+                  type: 'button',
+                  onclick: function (e: any) {
+                    const choices = List(
+                      Model.enchantmentChoices.filter(({ isCompatible, level }) => isCompatible && level > 0)
+                    );
+                    Model.buildPlan = build(choices);
+                  },
                 },
-              },
-              'Calculate optimal steps'
-            ),
+                'Calculate optimal steps'
+              ),
+            ]),
           ]),
         ]),
       ]),
