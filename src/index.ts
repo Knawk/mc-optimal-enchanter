@@ -88,34 +88,35 @@ const EnchantmentsList = {
       InputModel.enchantmentChoices.map((choice) => {
         const isCompatible = compatibleEnchantments.has(choice.enchantment);
         const data = ENCHANTMENT_DATA.get(choice.enchantment)!;
+        const selectId = `enchantmentSelect_${choice.enchantment}`;
         return m(
-          'p.enchantmentContainer',
+          '.input-group.mb-3.enchantmentContainer',
           {
-            class: isCompatible ? 'enabled' : '',
+            class: isCompatible ? '' : 'disabled',
           },
           [
-            m('label', [
-              data.name,
-              m(
-                'select',
-                {
-                  onchange: function (e: any) {
-                    choice.level = Number(e.target.value);
-                  },
+            m('label.input-group-text', { for: selectId }, [data.name]),
+            m(
+              'select.form-select',
+              {
+                id: selectId,
+                onchange: function (e: any) {
+                  choice.level = Number(e.target.value);
                 },
-                Range(0, data.maxLevel + 1)
-                  .map((level) =>
-                    m(
-                      'option',
-                      {
-                        value: level,
-                      },
-                      LEVEL_DISPLAY.get(level)!
-                    )
+              },
+              LEVEL_DISPLAY.entrySeq()
+                .map(([level, levelText]) =>
+                  m(
+                    'option',
+                    {
+                      value: level,
+                      disabled: level > data.maxLevel,
+                    },
+                    LEVEL_DISPLAY.get(level)!
                   )
-                  .toArray()
-              ),
-            ]),
+                )
+                .toArray()
+            ),
           ]
         );
       })
@@ -127,15 +128,13 @@ const InputView = {
   view: function () {
     return m('div', [
       m('h3', 'Select item and enchantments'),
-      m('form', [
-        m('.row', [
-          m('.col-12', [
-            m('label', { for: 'baseItemSelect' }, 'Base item'),
-            m(BaseItemSelect),
-          ]),
-          m('.col-12', ['with these enchantments', m(EnchantmentsList)]),
+      m('.col-12.mb-3', [
+        m('.form-floating', [
+          m(BaseItemSelect),
+          m('label', { for: 'baseItemSelect' }, 'Base item'),
         ]),
       ]),
+      m('.col-12', [m('form.row', [m(EnchantmentsList)])]),
     ]);
   },
 };
