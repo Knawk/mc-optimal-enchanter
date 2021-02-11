@@ -79,39 +79,41 @@ const EnchantmentsList = {
       InputModel.baseItem
     );
     return m(
-      'div',
+      'div.row',
       InputModel.enchantmentChoices.map((choice) => {
         const isCompatible = compatibleEnchantments.has(choice.enchantment);
         const data = ENCHANTMENT_DATA.get(choice.enchantment)!;
         const selectId = `enchantmentSelect_${choice.enchantment}`;
         return m(
-          '.input-group.mb-3.enchantmentContainer',
+          '.col-sm-6.enchantmentContainer',
           {
             class: isCompatible ? '' : 'disabled',
           },
           [
-            m('label.input-group-text', { for: selectId }, [data.name]),
-            m(
-              'select.form-select',
-              {
-                id: selectId,
-                onchange: function (e: any) {
-                  choice.level = Number(e.target.value);
+            m('.input-group.mb-3', [
+              m('label.input-group-text', { for: selectId }, [data.name]),
+              m(
+                'select.form-select',
+                {
+                  id: selectId,
+                  onchange: function (e: any) {
+                    choice.level = Number(e.target.value);
+                  },
                 },
-              },
-              LEVEL_DISPLAY.entrySeq()
-                .map(([level, levelText]) =>
-                  m(
-                    'option',
-                    {
-                      value: level,
-                      disabled: level > data.maxLevel,
-                    },
-                    LEVEL_DISPLAY.get(level)!
+                LEVEL_DISPLAY.entrySeq()
+                  .map(([level, levelText]) =>
+                    m(
+                      'option',
+                      {
+                        value: level,
+                        disabled: level > data.maxLevel,
+                      },
+                      LEVEL_DISPLAY.get(level)!
+                    )
                   )
-                )
-                .toArray()
-            ),
+                  .toArray()
+              ),
+            ]),
           ]
         );
       })
@@ -129,7 +131,7 @@ const InputView = {
           m('label', { for: 'baseItemSelect' }, 'Base item'),
         ]),
       ]),
-      m('.col-12', [m('form.row', [m(EnchantmentsList)])]),
+      m('.col-12', [m('form', [m(EnchantmentsList)])]),
     ]);
   },
 };
