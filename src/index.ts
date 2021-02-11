@@ -201,6 +201,12 @@ const StepsList = {
         m('h3', 'Steps'),
         m(
           'ol',
+          m(
+            'li',
+            `If you want to name your ${BASE_ITEM_NAMES.get(
+              Model.baseItem
+            )!}, do so first. (This will cost 1 level.)`
+          ),
           Model.buildPlan
             .entrySeq()
             .map(([stepId, buildStep]) =>
