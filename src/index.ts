@@ -42,8 +42,6 @@ const Model: ModelProps = {
     .map(([enchantment, data]) => ({
       enchantment,
       level: 0,
-      name: data.name,
-      maxLevel: data.maxLevel,
     }))
     .toArray(),
   buildPlan: Map(),
