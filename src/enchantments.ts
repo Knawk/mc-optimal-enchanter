@@ -118,6 +118,15 @@ const MUTUAL_EXCLUSION_SETS: List<Set<Enchantment>> = List([
   Set([Enchantment.Multishot, Enchantment.Piercing]),
 ]);
 
+export function findConflicts(
+  enchantments: Iterable<Enchantment>
+): List<List<Enchantment>> {
+  const enchantSet = Set(enchantments);
+  return MUTUAL_EXCLUSION_SETS.map((exclusives) =>
+    List(exclusives.intersect(enchantSet))
+  ).filter((exclusives) => exclusives.size > 1);
+}
+
 const LEVEL_DISPLAY = Map([
   [0, ' '],
   [1, 'I'],

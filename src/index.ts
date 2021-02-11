@@ -6,16 +6,12 @@ import {
   Enchantment,
   ENCHANTMENT_DATA,
   LeveledEnchantment,
+  findConflicts,
   formatEnchantment,
   formatEnchantmentLevel,
   formatLeveledEnchantment,
 } from './enchantments';
-import {
-  build,
-  BuildPlan,
-  BuildStep,
-  BuildItem,
-} from './build';
+import { build, BuildPlan, BuildStep, BuildItem } from './build';
 import {
   BaseItem,
   WEARABLE_BASE_ITEMS,
@@ -36,6 +32,7 @@ interface EnchantmentChoice extends LeveledEnchantment {
 interface ModelProps {
   baseItem: BaseItem;
   enchantmentChoices: EnchantmentChoice[];
+  conflicts: List<List<Enchantment>>;
   buildPlan: BuildPlan;
 }
 
@@ -51,14 +48,27 @@ const Model: ModelProps = {
       isCompatible: false,
     }))
     .toArray(),
+  conflicts: List(),
   buildPlan: NO_BUILD_PLAN,
 };
+
+function getSelectedEnchantmentChoices(): Iterable<EnchantmentChoice> {
+  return Model.enchantmentChoices.filter(
+    ({ level, isCompatible }) => isCompatible && level > 0
+  );
+}
 
 function updateCompatibleEnchantments() {
   const compatibleEnchantments = getCompatibleEnchantments(Model.baseItem);
   for (let choice of Model.enchantmentChoices) {
     choice.isCompatible = compatibleEnchantments.has(choice.enchantment);
   }
+}
+
+function updateConflicts() {
+  Model.conflicts = findConflicts(
+    getSelectedEnchantmentChoices().map(({ enchantment }) => enchantment)
+  );
 }
 
 const BaseItemSelect = {
@@ -73,6 +83,7 @@ const BaseItemSelect = {
         onchange: function (e: any) {
           Model.baseItem = e.target.value;
           updateCompatibleEnchantments();
+          updateConflicts();
           Model.buildPlan = NO_BUILD_PLAN;
         },
       },
@@ -111,6 +122,7 @@ const EnchantmentsList = {
                   id: selectId,
                   onchange: function (e: any) {
                     choice.level = Number(e.target.value);
+                    updateConflicts();
                   },
                 },
                 [0, ...Range(data.maxLevel, 0)].map((level) =>
@@ -127,6 +139,37 @@ const EnchantmentsList = {
           ]
         );
       })
+    );
+  },
+};
+
+/**
+ * Precondition: conflict must contain at least two elements
+ */
+function formatConflict(conflict: List<Enchantment>): string {
+  const names = conflict.map((name) => formatEnchantment(name));
+  const init = names.butLast().join(', ');
+  const oxford = names.size > 2 ? ',' : '';
+  const last = names.last();
+  return `${init}${oxford} and ${last} are incompatible.`;
+}
+
+const ConflictsWarning = {
+  view: function () {
+    return m(
+      '.alert.alert-danger',
+      {
+        class: Model.conflicts.size ? '' : 'd-none',
+      },
+      [
+        'These enchantments cannot be combined.',
+        m(
+          'ul.mb-0',
+          Model.conflicts
+            .map((conflict) => m('li', formatConflict(conflict)))
+            .toArray()
+        ),
+      ]
     );
   },
 };
@@ -193,16 +236,15 @@ const View = {
             ]),
           ]),
           m('.col-12', [m('form', [m(EnchantmentsList)])]),
-          m('.col-12', [
+          m('.col-12.mb-3', [
             m('.d-grid.gap-2.col-6.mx-auto', [
               m(
                 'button.btn.btn-primary',
                 {
                   type: 'button',
+                  disabled: Model.conflicts.size > 0,
                   onclick: function (e: any) {
-                    const choices = List(
-                      Model.enchantmentChoices.filter(({ isCompatible, level }) => isCompatible && level > 0)
-                    );
+                    const choices = List(getSelectedEnchantmentChoices());
                     Model.buildPlan = build(choices);
                   },
                 },
@@ -210,6 +252,7 @@ const View = {
               ),
             ]),
           ]),
+          m('.col-12', [m(ConflictsWarning)]),
         ]),
       ]),
       m('.col-lg-5', [m(StepsList)]),
