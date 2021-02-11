@@ -1,23 +1,21 @@
 import 'regenerator-runtime/runtime';
 
 import { List, Map, Set, Range, OrderedMap } from 'immutable';
-import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
+import {
+  Enchantment,
+  ENCHANTMENT_DATA,
+  LeveledEnchantment,
+} from './enchantments';
 
 interface Component {
   kind: 'Base' | Enchantment;
-  maxLevelCost: number;
+  levelCost: number;
+  level: number;
 }
 
 type Memo = Map<Set<Component>, Map<number, Item>>;
 
-function makeComponent(
-  kind: 'Base' | Enchantment,
-  maxLevelCost: number
-): Component {
-  return { kind, maxLevelCost };
-}
-
-const BASE_COMPONENT = makeComponent('Base', 0);
+const BASE_COMPONENT: Component = { kind: 'Base', levelCost: 0, level: 0 };
 
 interface Item {
   comps: Set<Component>;
@@ -153,7 +151,7 @@ function computeOptimalItem(comps: List<Component>): Item {
           {
             comps: singleton,
             workCount: 0,
-            enchantLevelCost: component.maxLevelCost,
+            enchantLevelCost: component.levelCost,
             combineExpCost: 0,
             completeExpCost: 0,
           },
@@ -187,7 +185,7 @@ interface BaseBuildItem {
 
 interface EnchantmentBuildItem {
   kind: 'enchantment';
-  enchantment: Enchantment;
+  enchantment: LeveledEnchantment;
 }
 
 interface StepBuildItem {
@@ -202,7 +200,7 @@ export type BuildStepId = string;
 export interface BuildStep {
   stepId: BuildStepId;
   hasBase: boolean;
-  enchantments: List<Enchantment>;
+  enchantments: List<LeveledEnchantment>;
   target: BuildItem;
   sac: BuildItem;
   levelCost: number;
@@ -212,6 +210,14 @@ export type BuildPlan = Map<BuildStepId, BuildStep>;
 
 const STEP_IDS = List('ABCDEFGHIJKL');
 
+function toLeveledEnchantment(component: Component): LeveledEnchantment {
+  console.assert(component.kind !== 'Base');
+  return {
+    enchantment: component.kind as Enchantment,
+    level: component.level,
+  };
+}
+
 function toBuildItem(
   item: Item,
   itemStepIds: Map<Item, BuildStepId>
@@ -220,7 +226,7 @@ function toBuildItem(
     if (hasBaseItem(item)) return { kind: 'base' };
     return {
       kind: 'enchantment',
-      enchantment: (item.comps.first() as Component).kind as Enchantment,
+      enchantment: toLeveledEnchantment(item.comps.first() as Component),
     };
   }
   console.assert(itemStepIds.has(item));
@@ -250,7 +256,7 @@ function toBuildPlan(item: Item): BuildPlan {
       enchantments: item.comps
         .remove(BASE_COMPONENT)
         .toList()
-        .map((comp) => comp.kind as Enchantment)
+        .map((comp) => toLeveledEnchantment(comp))
         .sort(),
       target: toBuildItem(item.target!, itemStepIds),
       sac: toBuildItem(item.sac!, itemStepIds),
@@ -268,10 +274,16 @@ export interface EnchantmentChoice {
 
 export function build(choices: List<EnchantmentChoice>): BuildPlan {
   let components = choices
-    .map(({ enchantment, level }) => {
-      const data = ENCHANTMENT_DATA.get(enchantment)!;
-      return makeComponent(enchantment, level * data.costMultiplier);
-    })
+    .map(
+      ({ enchantment, level }): Component => {
+        const data = ENCHANTMENT_DATA.get(enchantment)!;
+        return {
+          kind: enchantment,
+          levelCost: level * data.costMultiplier,
+          level,
+        };
+      }
+    )
     .push(BASE_COMPONENT);
   return toBuildPlan(computeOptimalItem(components));
 }

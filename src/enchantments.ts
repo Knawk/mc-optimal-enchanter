@@ -117,3 +117,36 @@ const MUTUAL_EXCLUSION_SETS: List<Set<Enchantment>> = List([
   Set([Enchantment.Infinity, Enchantment.Mending]),
   Set([Enchantment.Multishot, Enchantment.Piercing]),
 ]);
+
+const LEVEL_DISPLAY = Map([
+  [0, ' '],
+  [1, 'I'],
+  [2, 'II'],
+  [3, 'III'],
+  [4, 'IV'],
+  [5, 'V'],
+]);
+
+export function formatEnchantment(enchantment: Enchantment): string {
+  return ENCHANTMENT_DATA.get(enchantment)!.name;
+}
+
+export function formatEnchantmentLevel(level: number): string {
+  return LEVEL_DISPLAY.get(level, '?');
+}
+
+export interface LeveledEnchantment {
+  enchantment: Enchantment;
+  level: number;
+}
+
+export function formatLeveledEnchantment({
+  enchantment,
+  level,
+}: LeveledEnchantment) {
+  const levelText =
+    ENCHANTMENT_DATA.get(enchantment)!.maxLevel > 1
+      ? ` ${formatEnchantmentLevel(level)}`
+      : '';
+  return formatEnchantment(enchantment) + levelText;
+}
