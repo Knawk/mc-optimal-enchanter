@@ -1,4 +1,5 @@
 import { List, Map } from 'immutable';
+import m from 'mithril';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
 import { build, BuildPlan, BuildStep, BuildItem } from './build';
@@ -13,6 +14,73 @@ import {
 
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
+
+const ALL_BASE_ITEMS = List([
+  ...WEARABLE_BASE_ITEMS,
+  ...COMBAT_BASE_ITEMS,
+  ...TOOL_BASE_ITEMS,
+]).sortBy((baseItem) => BASE_ITEM_NAMES.get(baseItem)!);
+
+interface EnchantmentChoice {
+  enchantment: Enchantment;
+  level: number; // 0 for disabled
+}
+
+interface InputModelProps {
+  baseItem: BaseItem;
+  enchantmentChoices: EnchantmentChoice[];
+}
+
+const InputModel: InputModelProps = {
+  baseItem: BaseItem.Pickaxe,
+  enchantmentChoices: ENCHANTMENT_DATA.sortBy((data) => data.name)
+    .keySeq()
+    .map((enchantment) => ({ enchantment, level: 0 }))
+    .toArray(),
+};
+
+const BaseItemSelect = {
+  view: function () {
+    return m(
+      'select.form-select',
+      {
+        id: 'baseItemSelect',
+        onchange: function (e) {
+          InputModel.baseItem = e.target.value;
+        },
+      },
+      ALL_BASE_ITEMS.map((baseItem) =>
+        m(
+          'option',
+          {
+            value: baseItem,
+            selected: baseItem === InputModel.baseItem,
+          },
+          BASE_ITEM_NAMES.get(baseItem)
+        )
+      ).toArray()
+    );
+  },
+};
+
+const InputView = {
+  view: function () {
+    return m('div', [
+      m('h3', 'Select item and enchantments'),
+      m('form', [
+        m('.row', [
+          m('.col-12', [
+            m('label', { for: 'baseItemSelect' }, 'Base item'),
+            m(BaseItemSelect),
+          ]),
+          m('.col-12', ['with these enchantments', m('#enchantmentsList')]),
+        ]),
+      ]),
+    ]);
+  },
+};
+
+m.mount(document.getElementById('inputViewMount')!, InputView);
 
 const YEP = [
   Enchantment.SweepingEdge,
@@ -81,18 +149,6 @@ baseItemSelect.onchange = function () {
 };
 
 function initialRender() {
-  const baseItems = List([
-    ...WEARABLE_BASE_ITEMS,
-    ...COMBAT_BASE_ITEMS,
-    ...TOOL_BASE_ITEMS,
-  ]).sortBy((baseItem) => BASE_ITEM_NAMES.get(baseItem)!);
-  for (let baseItem of baseItems) {
-    const option = document.createElement('option');
-    option.value = baseItem;
-    option.innerText = BASE_ITEM_NAMES.get(baseItem)!;
-    baseItemSelect.appendChild(option);
-  }
-
   ENCHANTMENT_DATA.sortBy((data) => data.name).forEach((data, enchantment) => {
     enchantmentsList.appendChild(enchantmentInputs.get(enchantment)!.container);
   });
