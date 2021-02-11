@@ -2,7 +2,13 @@ import { List, Map, Range } from 'immutable';
 import m from 'mithril';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
-import { build, BuildPlan, BuildStep, BuildItem, EnchantmentChoice } from './build';
+import {
+  build,
+  BuildPlan,
+  BuildStep,
+  BuildItem,
+  EnchantmentChoice,
+} from './build';
 import {
   BaseItem,
   WEARABLE_BASE_ITEMS,
@@ -81,7 +87,7 @@ const EnchantmentsList = {
       'div',
       InputModel.enchantmentChoices.map((choice) => {
         const isCompatible = compatibleEnchantments.has(choice.enchantment);
-        const data = ENCHANTMENT_DATA.get(choice.enchantment)!
+        const data = ENCHANTMENT_DATA.get(choice.enchantment)!;
         return m(
           'p.enchantmentContainer',
           {
@@ -138,7 +144,9 @@ m.mount(document.getElementById('inputViewMount')!, InputView);
 
 document.getElementById('go')!.onclick = function () {
   const startTime = Date.now();
-  const choices = List(InputModel.enchantmentChoices.filter(({ level }) => level > 0));
+  const choices = List(
+    InputModel.enchantmentChoices.filter(({ level }) => level > 0)
+  );
   const buildPlan = build(choices);
   const endTime = Date.now();
   console.log('elapsed (ms):', endTime - startTime);
