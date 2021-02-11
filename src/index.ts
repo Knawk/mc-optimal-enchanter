@@ -52,7 +52,7 @@ const Model: ModelProps = {
   buildPlan: NO_BUILD_PLAN,
 };
 
-function getSelectedEnchantmentChoices(): Iterable<EnchantmentChoice> {
+function getSelectedEnchantmentChoices(): EnchantmentChoice[] {
   return Model.enchantmentChoices.filter(
     ({ level, isCompatible }) => isCompatible && level > 0
   );
@@ -242,7 +242,9 @@ const View = {
                 'button.btn.btn-primary',
                 {
                   type: 'button',
-                  disabled: Model.conflicts.size > 0,
+                  disabled:
+                    getSelectedEnchantmentChoices().length === 0 ||
+                    Model.conflicts.size > 0,
                   onclick: function (e: any) {
                     const choices = List(getSelectedEnchantmentChoices());
                     Model.buildPlan = build(choices);
