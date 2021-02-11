@@ -2,7 +2,7 @@ import { List, Map, Range } from 'immutable';
 import m from 'mithril';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
-import { build, BuildPlan, BuildStep, BuildItem } from './build';
+import { build, BuildPlan, BuildStep, BuildItem, EnchantmentChoice } from './build';
 import {
   BaseItem,
   WEARABLE_BASE_ITEMS,
@@ -20,14 +20,6 @@ const ALL_BASE_ITEMS = List([
   ...COMBAT_BASE_ITEMS,
   ...TOOL_BASE_ITEMS,
 ]).sortBy((baseItem) => BASE_ITEM_NAMES.get(baseItem)!);
-
-interface EnchantmentChoice {
-  enchantment: Enchantment;
-  level: number; // 0 for disabled
-  // cached from ENCHANTMENT_DATA
-  name: string;
-  maxLevel: number;
-}
 
 interface InputModelProps {
   baseItem: BaseItem;
@@ -53,7 +45,7 @@ const BaseItemSelect = {
       'select.form-select',
       {
         id: 'baseItemSelect',
-        onchange: function (e) {
+        onchange: function (e: any) {
           InputModel.baseItem = e.target.value;
         },
       },
@@ -89,6 +81,7 @@ const EnchantmentsList = {
       'div',
       InputModel.enchantmentChoices.map((choice) => {
         const isCompatible = compatibleEnchantments.has(choice.enchantment);
+        const data = ENCHANTMENT_DATA.get(choice.enchantment)!
         return m(
           'p.enchantmentContainer',
           {
@@ -96,15 +89,15 @@ const EnchantmentsList = {
           },
           [
             m('label', [
-              choice.name,
+              data.name,
               m(
                 'select',
                 {
-                  onchange: function (e) {
+                  onchange: function (e: any) {
                     choice.level = Number(e.target.value);
                   },
                 },
-                Range(0, choice.maxLevel + 1)
+                Range(0, data.maxLevel + 1)
                   .map((level) =>
                     m(
                       'option',
@@ -143,57 +136,10 @@ const InputView = {
 
 m.mount(document.getElementById('inputViewMount')!, InputView);
 
-const YEP = [
-  Enchantment.SweepingEdge,
-  Enchantment.Looting,
-  Enchantment.Unbreaking,
-  Enchantment.Knockback,
-  Enchantment.FireAspect,
-  Enchantment.Mending,
-  Enchantment.Sharpness,
-];
-
-interface EnchantmentInput {
-  container: HTMLElement;
-  checkbox: HTMLInputElement;
-  enabled: boolean;
-}
-
-const enchantmentInputs: Map<
-  Enchantment,
-  EnchantmentInput
-> = ENCHANTMENT_DATA.map((enchantmentData, enchantment) => {
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  if (YEP.indexOf(enchantment) !== -1) {
-    checkbox.checked = true;
-  }
-  const label = document.createElement('label');
-  label.appendChild(checkbox);
-  label.appendChild(
-    document.createTextNode(ENCHANTMENT_DATA.get(enchantment)!.name)
-  );
-
-  const container = document.createElement('p');
-  container.classList.add('enchantmentContainer');
-  container.appendChild(label);
-
-  return {
-    container,
-    checkbox,
-    enabled: false,
-  };
-});
-
 document.getElementById('go')!.onclick = function () {
   const startTime = Date.now();
-  const enchantments = List(
-    enchantmentInputs
-      .filter((input) => input.enabled && input.checkbox.checked)
-      .keys()
-  );
-  console.log(enchantments.toArray());
-  const buildPlan = build(enchantments);
+  const choices = List(InputModel.enchantmentChoices.filter(({ level }) => level > 0));
+  const buildPlan = build(choices);
   const endTime = Date.now();
   console.log('elapsed (ms):', endTime - startTime);
   renderBuildPlan(buildPlan);
@@ -202,7 +148,7 @@ document.getElementById('go')!.onclick = function () {
 function renderBuildItem(buildItem: BuildItem): string {
   switch (buildItem.kind) {
     case 'base':
-      return BASE_ITEM_NAMES.get(baseItemSelect.value as BaseItem)!;
+      return BASE_ITEM_NAMES.get(InputModel.baseItem)!;
     case 'enchantment':
       return ENCHANTMENT_DATA.get(buildItem.enchantment)!.name;
     case 'step':

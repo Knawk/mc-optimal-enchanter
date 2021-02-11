@@ -261,11 +261,16 @@ function toBuildPlan(item: Item): BuildPlan {
   return buildSteps;
 }
 
-export function build(enchantments: List<Enchantment>): BuildPlan {
-  let components = enchantments
-    .map((enchantment) => {
+export interface EnchantmentChoice {
+  enchantment: Enchantment;
+  level: number; // 0 for disabled
+}
+
+export function build(choices: List<EnchantmentChoice>): BuildPlan {
+  let components = choices
+    .map(({ enchantment, level }) => {
       const data = ENCHANTMENT_DATA.get(enchantment)!;
-      return makeComponent(enchantment, data.maxLevel * data.costMultiplier);
+      return makeComponent(enchantment, level * data.costMultiplier);
     })
     .push(BASE_COMPONENT);
   return toBuildPlan(computeOptimalItem(components));
