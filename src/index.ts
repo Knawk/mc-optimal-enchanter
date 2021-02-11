@@ -1,4 +1,4 @@
-import { List, Map } from 'immutable';
+import { List, Map, Range } from 'immutable';
 import m from 'mithril';
 
 import { Enchantment, ENCHANTMENT_DATA } from './enchantments';
@@ -24,6 +24,9 @@ const ALL_BASE_ITEMS = List([
 interface EnchantmentChoice {
   enchantment: Enchantment;
   level: number; // 0 for disabled
+  // cached from ENCHANTMENT_DATA
+  name: string;
+  maxLevel: number;
 }
 
 interface InputModelProps {
@@ -34,8 +37,13 @@ interface InputModelProps {
 const InputModel: InputModelProps = {
   baseItem: BaseItem.Pickaxe,
   enchantmentChoices: ENCHANTMENT_DATA.sortBy((data) => data.name)
-    .keySeq()
-    .map((enchantment) => ({ enchantment, level: 0 }))
+    .entrySeq()
+    .map(([enchantment, data]) => ({
+      enchantment,
+      level: 0,
+      name: data.name,
+      maxLevel: data.maxLevel,
+    }))
     .toArray(),
 };
 
@@ -63,6 +71,59 @@ const BaseItemSelect = {
   },
 };
 
+const LEVEL_DISPLAY = Map([
+  [0, ' '],
+  [1, 'I'],
+  [2, 'II'],
+  [3, 'III'],
+  [4, 'IV'],
+  [5, 'V'],
+]);
+
+const EnchantmentsList = {
+  view: function () {
+    const compatibleEnchantments = getCompatibleEnchantments(
+      InputModel.baseItem
+    );
+    return m(
+      'div',
+      InputModel.enchantmentChoices.map((choice) => {
+        const isCompatible = compatibleEnchantments.has(choice.enchantment);
+        return m(
+          'p.enchantmentContainer',
+          {
+            class: isCompatible ? 'enabled' : '',
+          },
+          [
+            m('label', [
+              choice.name,
+              m(
+                'select',
+                {
+                  onchange: function (e) {
+                    choice.level = Number(e.target.value);
+                  },
+                },
+                Range(0, choice.maxLevel + 1)
+                  .map((level) =>
+                    m(
+                      'option',
+                      {
+                        value: level,
+                      },
+                      LEVEL_DISPLAY.get(level)!
+                    )
+                  )
+                  .toArray()
+              ),
+            ]),
+          ]
+        );
+      })
+    );
+  },
+};
+
 const InputView = {
   view: function () {
     return m('div', [
@@ -73,7 +134,7 @@ const InputView = {
             m('label', { for: 'baseItemSelect' }, 'Base item'),
             m(BaseItemSelect),
           ]),
-          m('.col-12', ['with these enchantments', m('#enchantmentsList')]),
+          m('.col-12', ['with these enchantments', m(EnchantmentsList)]),
         ]),
       ]),
     ]);
@@ -138,34 +199,6 @@ document.getElementById('go')!.onclick = function () {
   renderBuildPlan(buildPlan);
 };
 
-const enchantmentsList = document.getElementById(
-  'enchantmentsList'
-) as HTMLElement;
-const baseItemSelect = document.getElementById(
-  'baseItemSelect'
-) as HTMLInputElement;
-baseItemSelect.onchange = function () {
-  renderEnchantmentsList();
-};
-
-function initialRender() {
-  ENCHANTMENT_DATA.sortBy((data) => data.name).forEach((data, enchantment) => {
-    enchantmentsList.appendChild(enchantmentInputs.get(enchantment)!.container);
-  });
-
-  renderEnchantmentsList();
-}
-
-function renderEnchantmentsList() {
-  const baseItem = baseItemSelect.value as BaseItem;
-  const compatibleEnchantments = getCompatibleEnchantments(baseItem);
-  enchantmentInputs.forEach((input, enchantment) => {
-    const isCompatible = compatibleEnchantments.has(enchantment);
-    input.enabled = isCompatible;
-    input.container.classList.toggle('enabled', isCompatible);
-  });
-}
-
 function renderBuildItem(buildItem: BuildItem): string {
   switch (buildItem.kind) {
     case 'base':
@@ -188,5 +221,3 @@ function renderBuildPlan(buildPlan: BuildPlan) {
     );
   }
 }
-
-initialRender();
